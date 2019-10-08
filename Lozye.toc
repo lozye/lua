@@ -1,0 +1,8 @@
+## Interface: 11302
+## Title: Lozye Chat Filter
+## Notes: Lozye Chat Filter
+## Author: IceyPop
+## Version: 1.13.2
+
+filter.lua
+main.lua
