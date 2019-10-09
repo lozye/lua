@@ -1,14 +1,14 @@
--- require("filter")
--- require("timeignore")
+--require("filter")
 
 -- 模式 当value==flag时通过
 local flag = true
 local pattern = {}
 -- 设置过滤频率，
 local timemap = timeignore:new(30)
+--xpcall(function()local timemap = timeignore:new(30)end,function(err) print(err) end)
+
 -- 世界频道id
 local world_chnum = 4
-
 -- 填加，status为真时忽略
 local Add = function(name, status, value)
     if (not status) then
@@ -30,7 +30,7 @@ local Build = function()
     Add("低级任务", true, "通缉|激流堡|重铸秩序|达隆郡的战斗|藏尸者|安多哈尔|温德索尔|护送元帅|大地的震颤|破碎岭好战者|救元帅|摩本特|捕捉皇后|一丝希望")
     Add("低级任务2", true, "大地公主|打开钥匙之石")
     Add("低级地图", true, "凄凉之地|诅咒之地|湿地")
-    Add("金币交易", true, "小米|收G|大米|大饼|金币交易中心")
+    Add("金币交易", true, "小米|收G|大米|大饼|金币交易")
     Add("血色组合", true, "血色^教堂|血色^图书|血色^武器|血色^墓地|XS^教堂|XS^图书|XS^武器|XS^墓地")
 end
 
@@ -47,14 +47,14 @@ local chatMessageFilter = function(self, event, message, from, t1, t2, t3, t4, t
     if (chnum ~= world_chnum) then
         return false
     end
-    -- 关键字过滤
+    -- print(chname)
     for k, v in ipairs(pattern) do
         if (flag == filter.FindAll(message, v.value)) then
             return true
         end
     end
-    -- 重复过滤 可以from..message已发送者过滤，自己设置过滤判断
-    if (timeignore:add(from .. message)) then
+    -- return false
+    if (timemap:add(from..message)) then
         return false, message, from, t1, t2, t3, t4, t5, chnum, chname, ...
     else
         return true
@@ -64,10 +64,14 @@ end
 -- 短频道
 local ChannelShort = function()
     -- 不晓得怎么写了，强制替换掉大脚世界频道 反正其他频道都安静
-    local f = _G["ChatFrame" .. world_chnum]
-    local am = f.AddMessage
-    f.AddMessage = function(frame, text, ...)
-        return am(frame, string.gsub(text, " 大脚世界频道]", " 世]"), ...)
+    for i = 1, NUM_CHAT_WINDOWS do
+        if (i ~= 2) then
+            local f = _G["ChatFrame" .. i]
+            local am = f.AddMessage
+            f.AddMessage = function(frame, text, ...)
+                return am(frame, string.gsub(text, " 大脚世界频道]", " 世]"), ...)
+            end
+        end
     end
 end
 
