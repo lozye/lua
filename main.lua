@@ -1,8 +1,14 @@
---require("filter")
+-- require("filter")
+-- require("timeignore")
 
 -- 模式 当value==flag时通过
 local flag = true
 local pattern = {}
+-- 设置过滤频率，
+local timemap = timeignore:new(30)
+-- 世界频道id
+local world_chnum = 4
+
 -- 填加，status为真时忽略
 local Add = function(name, status, value)
     if (not status) then
@@ -37,26 +43,31 @@ end
 
 -- 消息view事件
 local chatMessageFilter = function(self, event, message, from, t1, t2, t3, t4, t5, chnum, chname, ...)
-    --print(chname)
+    -- 仅世界频道参与过滤
+    if (chnum ~= world_chnum) then
+        return false
+    end
+    -- 关键字过滤
     for k, v in ipairs(pattern) do
         if (flag == filter.FindAll(message, v.value)) then
             return true
         end
     end
-    return false, message, from, t1, t2, t3, t4, t5, chnum, chname, ...
+    -- 重复过滤 可以from..message已发送者过滤，自己设置过滤判断
+    if (timeignore:add(from .. message)) then
+        return false, message, from, t1, t2, t3, t4, t5, chnum, chname, ...
+    else
+        return true
+    end
 end
 
 -- 短频道
-local ChannelShort = function()   
+local ChannelShort = function()
     -- 不晓得怎么写了，强制替换掉大脚世界频道 反正其他频道都安静
-    for i = 1, NUM_CHAT_WINDOWS do
-        if (i ~= 2) then
-            local f = _G["ChatFrame" .. i]            
-            local am = f.AddMessage
-            f.AddMessage = function(frame, text, ...)               
-                return am(frame, string.gsub(text," 大脚世界频道]", " 世]"), ...)
-            end
-        end
+    local f = _G["ChatFrame" .. world_chnum]
+    local am = f.AddMessage
+    f.AddMessage = function(frame, text, ...)
+        return am(frame, string.gsub(text, " 大脚世界频道]", " 世]"), ...)
     end
 end
 
